@@ -4,4 +4,127 @@ author: "Elizabeth Chen & Benjamin Tompkins"
 date: "5/6/2020"
 output: html_document
 ---
+## Preface and Background
+
+Ethereum is a cryptocurrency that took the technology behind bitcoin and expanded its capabilities. Ethereum is a decentralized network with its own interbet browser, coding language, and payment system. Etheruem ustilizes a peer-to-peer approach, where nodes download the Etheruem blockchain and enforce all the rules of the system, which allows the network to be honest and the nodes to recieve rewards. Ethereum seems to be a complex mode of cryptocurrency exchange. It will be interesting comparing it with other cryptocurrencies.
+(https://cointelegraph.com/ethereum-for-beginners/what-is-ethereum)
+
+## Evironment Setup
+
+Libraries used to conduct our tutorial through the data science pipeline. 
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(caret)
+library(broom)
+library(pracma)
+```
+
+## Data Curation and Parsing
+
+  We are using datasets from https://www.kaggle.com/sudalairajkumar/cryptocurrencypricehistory#bitcoin_price.csv. This dataset has multiple .csv files for each type of cryptocurrency. In this specific tutorial we will be looking at three of these .csv files corresponding to three different cryptocurrencies. The cryptocurrencies we will be looking at are: Bitcoin, Ethereum, and Litecoin. We chose these three in particular because these were the ones that we had heard of and were fairly popular. CoinMarketCap, a website that tracks the value and performance of various cryptocurrencies, has all three of the chosen cryptocurrencies of this particular tutorial all within the top 10.
+  After downloading the dataset, we put each csv into its own table, then gave it an identifier of its type, then combined all three tables into one for easier data manipulation. All three datasets had the same column names making it easier to combine into something useful. We then used a lubridate function that made the Data column more useful for comparison and sorted by the date.
+
+```{r load_data, warnings=FALSE}
+bitcoin_tab <- read_csv("datasets/bitcoin_price.csv")
+litecoin_tab <- read_csv("datasets/litecoin_price.csv")
+ethereum_tab <- read_csv("datasets/ethereum_price.csv")
+bitcoin_tab <- mutate(bitcoin_tab, coin_type="bitcoin")
+litecoin_tab <- mutate(litecoin_tab, coin_type="litecoin")
+ethereum_tab <- mutate(ethereum_tab, coin_type="ethereum")
+crypto_tab <- bitcoin_tab %>%
+  rbind(litecoin_tab) %>%
+  rbind(ethereum_tab) %>%
+  mutate(Date=mdy(Date)) %>% 
+  arrange(desc(Date))
+crypto_tab
+```
+
+``` {r plots}
+crypto_tab %>%
+  ggplot(aes(x=Date, y=Open, color=coin_type)) +
+    geom_line()  +
+    labs(title = "Opening Price over Time",
+         x = "Opening",
+         y = "Date")
+
+```
+
+
+Plotting Closing value -Opening Value to see the best and worst days for each cryptocurrency. Based on the chart, The end of 2017 had a huge boom with the best daily differnces occuring in December 2017. In early 2018, however, all three cryptocurrencies experience their worst daily loss, signifying the event called the 2018 cryptocurrency crash, which occured from January 6, 2016 to February 6, 2018. In this period Bitcoin fell by about 65%, after an unprecedented boom in 2017. (en.wikipedia.org/wiki/2018_cryptocurrency_crash)
+``` {r diff}
+crypto_tab %>%
+  mutate(diff=Close-Open) %>%
+  group_by(coin_type) %>%
+  arrange(desc(diff)) %>%
+  ggplot(aes(x=Date, y=diff, color=coin_type)) +
+  geom_line() +
+  labs(title = "Difference in Closing price vs Opening Price over Time",
+         x = "Difference",
+         y = "Date")
+```
+
+Best days for bitcoin and litecoin occuring in December 2017.
+
+``` {r best day}
+crypto_tab %>%
+  mutate(diff=Close-Open) %>%
+  group_by(coin_type) %>%
+  filter(diff==max(diff))
+```
+
+Bitcoin and Ethereum both experience huge losses in January of 2018, signifying the 2018 cryptocurrency crash.
+
+```{r worst day}
+crypto_tab %>%
+  mutate(diff=Close-Open) %>%
+  group_by(coin_type) %>%
+  filter(diff==min(diff))
+```
+
+Trying to copy project 4 final_df doesnt work.
+```{r prediction}
+outcome_df <- crypto_tab %>%
+   mutate(diff=Close-Open) %>%
+   mutate(Direction = ifelse(diff>0, "up", "down"))
+outcome_df
+
+predictor_df <- outcome_df %>%
+  filter(year(Date) < 2018)
+predictor_df
+
+standardized_df <- predictor_df %>%
+  group_by(coin_type) %>%
+  mutate(mean = mean(diff)) %>%
+  mutate(sd = sd(diff)) %>%
+  mutate(z = (diff - mean) / sd) %>%
+  ungroup()
+standardized_df
+
+wide_df <- standardized_df %>%
+  select(coin_type, Date, z) %>%
+  tidyr::spread(Date, z)
+
+matrix_1 <- wide_df %>%
+  select(-coin_type) %>%
+  as.matrix() %>%
+  .[,-1]
+
+matrix_2 <- wide_df %>%
+  select(-coin_type) %>%
+  as.matrix() %>%
+  .[,-ncol(.)]
+
+diff_df <- (matrix_1 - matrix_2) %>%
+  magrittr::set_colnames(NULL) %>%
+  as_data_frame() %>%
+  mutate(coin_type = wide_df$coin_type)
+
+final_df <- diff_df %>%
+  inner_join(outcome_df %>% select(coin_type, Direction), by="coin_type") %>%
+  mutate(Direction=factor(Direction, levels=c("down", "up"))) %>%
+  select(-coin_type)
+final_df
+```
 
