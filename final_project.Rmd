@@ -4,7 +4,25 @@ author: "Elizabeth Chen & Benjamin Tompkins"
 date: "5/6/2020"
 output: html_document
 ---
+## Introduction
+Similar to common currencies, cryptocurrencies can be used to buy products and services. However, unlike other currencies, cryptocurrencies are digital and use cryptography to provide secure online transactions. Much of the interest in these unregulated currencies is to trade for profit even though cryptocurrencies can be in used regular purchase. Speculators at times drove prices of cryptocurrencies skyward.
+
 ## Preface and Background
+Cryptocurrency is a form of payment that can be exchanged online for products and services. Many companies have issued their own cryptocurrencies, often called tokens, which can be used specifically to purchase the products and services provided by the company. Cryptocurrency can be considered similar to arcade tokens or casino chips, which need to be purchased or exchanged with real currency.
+
+Cryptocurrencies use a technology called blockchain, which is a decentralized technology spread across many computers that manages and records transactions. One of the appealing characteristics of cryptocurrencies is its security.
+
+According to CoinMarketCap.com, a market research website, more than 2,200 different cryptocurrencies are traded publicly. The total value of all cryptocurrencies as of June 2019 was estimated to be $246 billion. Since the cryptocurrency market is still fairly young, the current stock prices of cryptocurrencies can vary quite a bit. We hope to do some analysis on the following types of cryptocurrencies to see if we can predict some current market trends: Bitcoin, Litecoin and Ethereum.
+
+For more information on how cryptocurrencies work: https://blockgeeks.com/guides/what-is-cryptocurrency/
+For more information on cryptocurrency prices: https://cointelegraph.com/explained/how-cryptocurrency-prices-work-explained
+
+Created in 2009 by Satoshi Nakamoto, Bitcoin was the first widely adopted cryptocurrency. Bitcoin not only uses peer-to-peer technology to operate with no central authority or banks, but also collectively manages transactions and bitcoin’s issuance. Bitcoin is open-source; its design is public, nobody owns or controls Bitcoin and everyone can take part. Nowadays, Bitcoin has become synonymous with cryptocurrency, however, this is not the only type of cryptocurrency available.
+(https://medium.com/decryptionary/what-is-bitcoin-for-dummies-a-guide-for-beginners-8b3d9c0a8065)
+
+Litecoin is one of the most prominent alternatives to Bitcoin and works upon the same fundamental principles. The transaction time of Litecoin is roughly two and a half minutes faster than that of Bitcoin. With four times as many Litecoins in circulation, it theoretically offers smaller divisions of coins to make smaller transaction values more feasible. Litecoin also uses a hashing algorithm, known as scrypt, which is supposed to keep Litecoin mining realistic for desktop users. Bitcoin uses the standard SHA256d algorithm which becomes more time as well as power intensive as time goes on. 
+(https://www.forbes.com/sites/quora/2018/02/08/what-is-litecoin/#6b7bf4c333f7)
+(https://www.wired.com/2013/08/litecoin/)
 
 Ethereum is a cryptocurrency that took the technology behind bitcoin and expanded its capabilities. Ethereum is a decentralized network with its own interbet browser, coding language, and payment system. Etheruem ustilizes a peer-to-peer approach, where nodes download the Etheruem blockchain and enforce all the rules of the system, which allows the network to be honest and the nodes to recieve rewards. Ethereum seems to be a complex mode of cryptocurrency exchange. It will be interesting comparing it with other cryptocurrencies.
 (https://cointelegraph.com/ethereum-for-beginners/what-is-ethereum)
@@ -38,7 +56,8 @@ crypto_tab <- bitcoin_tab %>%
   rbind(ethereum_tab) %>%
   mutate(Date=mdy(Date)) %>% 
   arrange(desc(Date))
-crypto_tab
+
+head(crypto_tab)
 ```
 
 ``` {r plots}
