@@ -5,7 +5,9 @@ date: "5/6/2020"
 output: html_document
 ---
 ## Introduction
-Similar to common currencies, cryptocurrencies can be used to buy products and services. However, unlike other currencies, cryptocurrencies are digital and use cryptography to provide secure online transactions. Much of the interest in these unregulated currencies is to trade for profit even though cryptocurrencies can be in used regular purchase. Speculators at times drove prices of cryptocurrencies skyward.
+Similar to common currencies, cryptocurrencies can be used to buy products and services. However, unlike other currencies, cryptocurrencies are digital and use cryptography to provide secure online transactions. Much of the interest in these unregulated currencies is to trade for profit even though cryptocurrencies can be in used regular purchase. Speculators at times drove prices of cryptocurrencies skyward. 
+
+In this tutorial, we will cover the entire data science pipeline: data curation, parsing, and management; exploratory data analysis; hypothesis testing and machine learning. We will use R to carry out various techniques of predicting financial market movements, specifically stock prices of different cryptocurrencies.
 
 ## Preface and Background
 Cryptocurrency is a form of payment that can be exchanged online for products and services. Many companies have issued their own cryptocurrencies, often called tokens, which can be used specifically to purchase the products and services provided by the company. Cryptocurrency can be considered similar to arcade tokens or casino chips, which need to be purchased or exchanged with real currency.
@@ -27,7 +29,7 @@ Litecoin is one of the most prominent alternatives to Bitcoin and works upon the
 Ethereum is a cryptocurrency that took the technology behind bitcoin and expanded its capabilities. Ethereum is a decentralized network with its own interbet browser, coding language, and payment system. Etheruem ustilizes a peer-to-peer approach, where nodes download the Etheruem blockchain and enforce all the rules of the system, which allows the network to be honest and the nodes to recieve rewards. Ethereum seems to be a complex mode of cryptocurrency exchange. It will be interesting comparing it with other cryptocurrencies.
 (https://cointelegraph.com/ethereum-for-beginners/what-is-ethereum)
 
-## Evironment Setup
+## Environment Setup
 
 Libraries used to conduct our tutorial through the data science pipeline. 
 ```{r setup}
@@ -41,8 +43,9 @@ library(pracma)
 
 ## Data Curation and Parsing
 
-  We are using datasets from https://www.kaggle.com/sudalairajkumar/cryptocurrencypricehistory#bitcoin_price.csv. This dataset has multiple .csv files for each type of cryptocurrency. In this specific tutorial we will be looking at three of these .csv files corresponding to three different cryptocurrencies. The cryptocurrencies we will be looking at are: Bitcoin, Ethereum, and Litecoin. We chose these three in particular because these were the ones that we had heard of and were fairly popular. CoinMarketCap, a website that tracks the value and performance of various cryptocurrencies, has all three of the chosen cryptocurrencies of this particular tutorial all within the top 10.
-  After downloading the dataset, we put each csv into its own table, then gave it an identifier of its type, then combined all three tables into one for easier data manipulation. All three datasets had the same column names making it easier to combine into something useful. We then used a lubridate function that made the Data column more useful for comparison and sorted by the date.
+We are using datasets from https://www.kaggle.com/sudalairajkumar/cryptocurrencypricehistory#bitcoin_price.csv. This dataset has multiple .csv files for each type of cryptocurrency. In this specific tutorial we will be looking at three of these .csv files corresponding to three different cryptocurrencies. The cryptocurrencies we will be looking at are: Bitcoin, Ethereum, and Litecoin. We chose these three in particular because these were the ones that we had heard of and were fairly popular. CoinMarketCap, a website that tracks the value and performance of various cryptocurrencies, has all three of the chosen cryptocurrencies of this particular tutorial all within the top 10.
+  
+After downloading the dataset, we put each csv into its own table, then gave it an identifier of its type, then combined all three tables into one for easier data manipulation. All three datasets had the same column names making it easier to combine into something useful. We then used a lubridate function that made the Data column more useful for comparison and sorted by the date.
 
 ```{r load_data, warnings=FALSE}
 bitcoin_tab <- read_csv("datasets/bitcoin_price.csv")
@@ -60,53 +63,132 @@ crypto_tab <- bitcoin_tab %>%
 head(crypto_tab)
 ```
 
-``` {r plots}
+## Data Management
+
+Currently in our dataset, we have the following attributes: 
+* Date - Date refers to the calendar date for the particular row - 24 hours midnight to midnight
+* Open - Open is what the price was at the beginning of the day
+* High - Highest recorded trading price of the day
+* Low - Lowest recorded trading price of the day
+* Close - Close is what the price was at the end of the day
+* Volume - Volume represents the monetary value of the currency traded in a 24 hour period, denoted in USD
+* Market Cap - Market cap is circulating supply x price of the coin. For example, if you have 100 coins that are worth \$10 each your market cap is \$1,000
+
+We want to add the following new attributes for our data analysis later on: close ratio and spread.
+* Close ratio is the daily close rate, min-maxed with the high and low values for the day. Close Ratio = (Close-Low)/(High-Low)
+* Spread is the $USD difference between the high and low values for the day.
+
+```{r add_attr}
+crypto_tab = crypto_tab %>%
+  mutate(close_ratio=(Close-Low)/(High-Low)) %>%
+  mutate(spread=Close-Open) %>%
+  drop_na
+
+head(crypto_tab)
+```
+
+## Exploratory Data Analysis
+
+Now that we have our data all nice and sorted, let's begin some exploratory data analysis! We're going to want to analyze the trends and directions in the market values for our cryptocurrencies.
+
+``` {r analysis}
+print("Bitcoin Analysis:")
+bitcoin = crypto_tab %>%
+  filter(coin_type=='bitcoin')
+cat("Opening Mean - ", mean(bitcoin$Open), "\n")
+cat("Opening Median - ", median(bitcoin$Open), "\n")
+cat("Opening Variance - ", var(bitcoin$Open), "\n")
+cat("\n")
+cat("Closing Mean - ", mean(bitcoin$Close), "\n")
+cat("Closing Median - ", median(bitcoin$Close), "\n")
+cat("Closing Variance - ", var(bitcoin$Close), "\n")
+cat("\n")
+cat("Spread Mean - ", mean(bitcoin$spread), "\n")
+cat("Spread Median - ", median(bitcoin$spread), "\n")
+cat("Spread Variance - ", var(bitcoin$spread), "\n")
+cat("\n")
+cat("Close Ratio Mean - ", mean(bitcoin$close_ratio), "\n")
+cat("Close Ratio Median - ", median(bitcoin$close_ratio), "\n")
+cat("Close Ratio Variance - ", var(bitcoin$close_ratio), "\n")
+```
+
+Time for some visualization!
+
+``` {r open_plot}
 crypto_tab %>%
   ggplot(aes(x=Date, y=Open, color=coin_type)) +
     geom_line()  +
     labs(title = "Opening Price over Time",
-         x = "Opening",
-         y = "Date")
-
+         x = "Date",
+         y = "Opening")
 ```
 
+Here, we see that opening prices of cryptocurrencies increase over time, which makes sense due to rising popularity. Bitcoin appears to have a significantly higher opening prices compared to the other cryptocurencies (altcoin). We also notice that in late 2017 the opening price for Bitcoin significantly dropped with a slight revival in early 2018. The overall trend is a positive and increasing, linear for Ethereum and Litecoin.
 
-Plotting Closing value -Opening Value to see the best and worst days for each cryptocurrency. Based on the chart, The end of 2017 had a huge boom with the best daily differnces occuring in December 2017. In early 2018, however, all three cryptocurrencies experience their worst daily loss, signifying the event called the 2018 cryptocurrency crash, which occured from January 6, 2016 to February 6, 2018. In this period Bitcoin fell by about 65%, after an unprecedented boom in 2017. (en.wikipedia.org/wiki/2018_cryptocurrency_crash)
-``` {r diff}
+``` {r close_plot}
 crypto_tab %>%
-  mutate(diff=Close-Open) %>%
+  ggplot(aes(x=Date, y=Close, color=coin_type)) +
+    geom_line()  +
+    labs(title = "Closing Price over Time",
+         x = "Date",
+         y = "Closing")
+```
+
+Looking at the closing prices, we see roughly the same trends as in the opening prices.
+
+Now, we are going to plot the spread to see the best and worst days for each cryptocurrency. 
+``` {r spread}
+crypto_tab %>%
   group_by(coin_type) %>%
-  arrange(desc(diff)) %>%
-  ggplot(aes(x=Date, y=diff, color=coin_type)) +
+  arrange(desc(spread)) %>%
+  ggplot(aes(x=Date, y=spread, color=coin_type)) +
   geom_line() +
   labs(title = "Difference in Closing price vs Opening Price over Time",
-         x = "Difference",
-         y = "Date")
+         x = "Date",
+         y = "Spread")
 ```
+Based on the chart, The end of 2017 had a huge boom with the best daily differences occuring in December 2017. In early 2018, however, all three cryptocurrencies experience their worst daily loss, signifying the event called the 2018 cryptocurrency crash, which occured from January 6, 2016 to February 6, 2018. In this period Bitcoin fell by about 65%, after an unprecedented boom in 2017. (en.wikipedia.org/wiki/2018_cryptocurrency_crash)
 
-Best days for bitcoin and litecoin occuring in December 2017.
-
+Next we want to analyze, the best days for Bitcoin, Litecoin and Ethereum. To do so, we will filter our data for the max spread for each coin type.
 ``` {r best day}
 crypto_tab %>%
-  mutate(diff=Close-Open) %>%
   group_by(coin_type) %>%
-  filter(diff==max(diff))
+  filter(spread==max(spread))
 ```
 
-Bitcoin and Ethereum both experience huge losses in January of 2018, signifying the 2018 cryptocurrency crash.
+We see the best days for Bitcoin and Litecoin occur in December of 2017.
+
+Let's also look at the minimum spread.
 
 ```{r worst day}
 crypto_tab %>%
-  mutate(diff=Close-Open) %>%
   group_by(coin_type) %>%
-  filter(diff==min(diff))
+  filter(spread==min(spread))
+```
+Here we see Bitcoin and Ethereum both experience huge losses in January of 2018, signifying the 2018 cryptocurrency crash.
+
+Now, we are going to look at close ratio over time.
+``` {r ratio}
+crypto_tab %>%
+  ggplot(aes(x=Date, y=close_ratio, color=coin_type)) +
+  geom_point() +
+  geom_smooth(method='lm') +
+  labs(title = "Close Ratio over Time",
+         x = "Date",
+         y = "Close Ratio")
 ```
 
+Looking at this plot, the close ratio seems to have a slight positive increasing linear trend over time. 
+
+
+
+
+
+---------------------------------------------------------------------------
 Trying to copy project 4 final_df doesnt work.
 ```{r prediction}
 outcome_df <- crypto_tab %>%
-   mutate(diff=Close-Open) %>%
-   mutate(Direction = ifelse(diff>0, "up", "down"))
+   mutate(Direction = ifelse(spread>0, "up", "down"))
 outcome_df
 
 predictor_df <- outcome_df %>%
@@ -115,9 +197,9 @@ predictor_df
 
 standardized_df <- predictor_df %>%
   group_by(coin_type) %>%
-  mutate(mean = mean(diff)) %>%
-  mutate(sd = sd(diff)) %>%
-  mutate(z = (diff - mean) / sd) %>%
+  mutate(mean = mean(spread)) %>%
+  mutate(sd = sd(spread)) %>%
+  mutate(z = (spread - mean) / sd) %>%
   ungroup()
 standardized_df
 
