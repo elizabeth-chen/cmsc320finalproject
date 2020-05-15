@@ -7,7 +7,7 @@ output: html_document
 ## Introduction
 Similar to common currencies, cryptocurrencies can be used to buy products and services. However, unlike other currencies, cryptocurrencies are digital and use cryptography to provide secure online transactions. Much of the interest in these unregulated currencies is to trade for profit even though cryptocurrencies can be in used regular purchase. Speculators at times drove prices of cryptocurrencies skyward. 
 
-In this tutorial, we will cover the entire data science pipeline: data curation, parsing, and management; exploratory data analysis; hypothesis testing and machine learning. We will use R to carry out various techniques of predicting financial market movements, specifically stock prices of different cryptocurrencies.
+In this tutorial, we will cover the entire data science pipeline: data curation, parsing, and management; exploratory data analysis; hypothesis testing and machine learning. We will use R to carry out various techniques of predicting financial market movements, specifically volume of different cryptocurrencies trade. 
 
 ## Preface and Background
 Cryptocurrency is a form of payment that can be exchanged online for products and services. Many companies have issued their own cryptocurrencies, often called tokens, which can be used specifically to purchase the products and services provided by the company. Cryptocurrency can be considered similar to arcade tokens or casino chips, which need to be purchased or exchanged with real currency.
@@ -74,14 +74,18 @@ Currently in our dataset, we have the following attributes:
 * Volume - Volume represents the monetary value of the currency traded in a 24 hour period, denoted in USD
 * Market Cap - Market cap is circulating supply x price of the coin. For example, if you have 100 coins that are worth \$10 each your market cap is \$1,000
 
-We want to add the following new attributes for our data analysis later on: close ratio and spread.
+We want to add the following new attributes for our data analysis later on: spread and volume multipli.
 * Close ratio is the daily close rate, min-maxed with the high and low values for the day. Close Ratio = (Close-Low)/(High-Low)
 * Spread is the $USD difference between the high and low values for the day.
+* Volume Multiplier is the constant relationship between spread and trading volume. Volume Multiplier = Volume/Spread
+* Difference is the $USD difference between the opening and closing values for the day.
 
 ```{r add_attr}
 crypto_tab = crypto_tab %>%
   mutate(close_ratio=(Close-Low)/(High-Low)) %>%
-  mutate(spread=Close-Open) %>%
+  mutate(spread=High-Low) %>%
+  mutate(vol_mult = Volume/spread) %>%
+  mutate(diff=Close-Open) %>%
   drop_na
 
 head(crypto_tab)
@@ -91,28 +95,46 @@ head(crypto_tab)
 
 Now that we have our data all nice and sorted, let's begin some exploratory data analysis! We're going to want to analyze the trends and directions in the market values for our cryptocurrencies.
 
+A great way to start analyzing our data is looking at the minimum and maximum values of volume and spread so we know where our bounds are. Mean, median and variance are also important measures of central tendency which can tell us about the averages, where the majority of the data lie, and the spread of our data.
+
 ``` {r analysis}
 print("Bitcoin Analysis:")
 bitcoin = crypto_tab %>%
   filter(coin_type=='bitcoin')
-cat("Opening Mean - ", mean(bitcoin$Open), "\n")
-cat("Opening Median - ", median(bitcoin$Open), "\n")
-cat("Opening Variance - ", var(bitcoin$Open), "\n")
-cat("\n")
-cat("Closing Mean - ", mean(bitcoin$Close), "\n")
-cat("Closing Median - ", median(bitcoin$Close), "\n")
-cat("Closing Variance - ", var(bitcoin$Close), "\n")
-cat("\n")
-cat("Spread Mean - ", mean(bitcoin$spread), "\n")
-cat("Spread Median - ", median(bitcoin$spread), "\n")
-cat("Spread Variance - ", var(bitcoin$spread), "\n")
-cat("\n")
+cat("Volume Min - ", min(bitcoin$Volume), "\n")
+cat("Volume Max - ", max(bitcoin$Volume), "\n")
+cat("Spread Min - ", min(bitcoin$spread), "\n")
+cat("Spread Max - ", max(bitcoin$spread), "\n")
 cat("Close Ratio Mean - ", mean(bitcoin$close_ratio), "\n")
 cat("Close Ratio Median - ", median(bitcoin$close_ratio), "\n")
 cat("Close Ratio Variance - ", var(bitcoin$close_ratio), "\n")
+
+cat("\n")
+print("Ethereum Analysis:")
+ethereum = crypto_tab %>%
+  filter(coin_type=='ethereum')
+cat("Volume Min - ", min(ethereum$Volume), "\n")
+cat("Volume Max - ", max(ethereum$Volume), "\n")
+cat("Spread Min - ", min(ethereum$spread), "\n")
+cat("Spread Max - ", max(ethereum$spread), "\n")
+cat("Close Ratio Mean - ", mean(ethereum$close_ratio), "\n")
+cat("Close Ratio Median - ", median(ethereum$close_ratio), "\n")
+cat("Close Ratio Variance - ", var(ethereum$close_ratio), "\n")
+
+cat("\n")
+print("Litecoin Analysis:")
+litecoin = crypto_tab %>%
+  filter(coin_type=='litecoin')
+cat("Volume Min - ", min(litecoin$Volume), "\n")
+cat("Volume Max - ", max(litecoin$Volume), "\n")
+cat("Spread Min - ", min(litecoin$spread), "\n")
+cat("Spread Max - ", max(litecoin$spread), "\n")
+cat("Close Ratio Mean - ", mean(litecoin$close_ratio), "\n")
+cat("Close Ratio Median - ", median(litecoin$close_ratio), "\n")
+cat("Close Ratio Variance - ", var(litecoin$close_ratio), "\n")
 ```
 
-Time for some visualization!
+After gathering our data, we can clearly see there is a large range in volume and spread. The close ratio seems to have little variance, meaning the data points are close to the mean. However, this is still a little difficult to interpret so let's look at some visualizations.
 
 ``` {r open_plot}
 crypto_tab %>%
@@ -120,7 +142,7 @@ crypto_tab %>%
     geom_line()  +
     labs(title = "Opening Price over Time",
          x = "Date",
-         y = "Opening")
+         y = "Open")
 ```
 
 Here, we see that opening prices of cryptocurrencies increase over time, which makes sense due to rising popularity. Bitcoin appears to have a significantly higher opening prices compared to the other cryptocurencies (altcoin). We also notice that in late 2017 the opening price for Bitcoin significantly dropped with a slight revival in early 2018. The overall trend is a positive and increasing, linear for Ethereum and Litecoin.
@@ -136,36 +158,33 @@ crypto_tab %>%
 
 Looking at the closing prices, we see roughly the same trends as in the opening prices.
 
-Now, we are going to plot the spread to see the best and worst days for each cryptocurrency. 
-``` {r spread}
+Now, we are going to plot the difference between opening and closing prices to see the best and worst days for each cryptocurrency. 
+
+``` {r diff}
+crypto_tab %>%
+  group_by(coin_type) %>%
+  arrange(desc(diff)) %>%
+  ggplot(aes(x=Date, y=diff, color=coin_type)) +
+  geom_line() +
+  labs(title = "Difference in Closing Price vs Opening Price over Time",
+         x = "Date",
+         y = "Difference")
+```
+
+Based on the chart, The end of 2017 had a huge boom with the best daily differences occuring in December 2017. In early 2018, however, all three cryptocurrencies experience their worst daily loss, signifying the event called the 2018 cryptocurrency crash, which occured from January 6, 2016 to February 6, 2018. In this period Bitcoin fell by about 65%, after an unprecedented boom in 2017. (en.wikipedia.org/wiki/2018_cryptocurrency_crash)
+
+Next, let's look at spread which is the difference between the high and low for that date. This will tells us more about the volatility of each cryptocurrency.
+
+```{r spread}
 crypto_tab %>%
   group_by(coin_type) %>%
   arrange(desc(spread)) %>%
   ggplot(aes(x=Date, y=spread, color=coin_type)) +
   geom_line() +
-  labs(title = "Difference in Closing price vs Opening Price over Time",
+  labs(title = "Spread over Time",
          x = "Date",
          y = "Spread")
 ```
-Based on the chart, The end of 2017 had a huge boom with the best daily differences occuring in December 2017. In early 2018, however, all three cryptocurrencies experience their worst daily loss, signifying the event called the 2018 cryptocurrency crash, which occured from January 6, 2016 to February 6, 2018. In this period Bitcoin fell by about 65%, after an unprecedented boom in 2017. (en.wikipedia.org/wiki/2018_cryptocurrency_crash)
-
-Next we want to analyze, the best days for Bitcoin, Litecoin and Ethereum. To do so, we will filter our data for the max spread for each coin type.
-``` {r best day}
-crypto_tab %>%
-  group_by(coin_type) %>%
-  filter(spread==max(spread))
-```
-
-We see the best days for Bitcoin and Litecoin occur in December of 2017.
-
-Let's also look at the minimum spread.
-
-```{r worst day}
-crypto_tab %>%
-  group_by(coin_type) %>%
-  filter(spread==min(spread))
-```
-Here we see Bitcoin and Ethereum both experience huge losses in January of 2018, signifying the 2018 cryptocurrency crash.
 
 Now, we are going to look at close ratio over time.
 ``` {r ratio}
@@ -178,17 +197,99 @@ crypto_tab %>%
          y = "Close Ratio")
 ```
 
-Looking at this plot, the close ratio seems to have a slight positive increasing linear trend over time. 
+Looking at this plot, the close ratio seems to have a slight positive increasing linear trend over time, but this doesn't really tell us much.
 
+Let's try looking at volume next!
 
+```{r vol_plot}
+crypto_tab %>%
+  ggplot(aes(x=Date, y=Volume, color=coin_type)) +
+  geom_line() +
+  labs(title = "Volume over Time",
+         x = "Date",
+         y = "Volume")
+```
 
+The distribution of volume over time is skewed left which makes sense since trading of cryptocurrencies increases over time. This also tells us that from 2014 to early 2016 there was little trading compared to post 2017. 
 
+## Hypothesis Testing
+From now on, we will want to filter our data to be post-2017 since the cryptocurrency exchange was bankrupt during 2014 and was still being reestablished through late 2016.
+
+```{r date}
+crypto_tab = crypto_tab %>%
+  filter(Date >= "2017-01-01") 
+  
+head(crypto_tab)
+```
+
+Let's take another look at volume and spread.
+
+```{r vol_plot2, warning=FALSE, message=FALSE}
+crypto_tab %>%
+  ggplot(aes(x=Date, y=Volume, color=coin_type)) +
+  geom_line() +
+  geom_smooth() +
+  labs(title = "Volume over Time",
+         x = "Date",
+         y = "Volume")
+```
+
+```{r spread, warning=FALSE, message=FALSE}
+crypto_tab %>%
+  group_by(coin_type) %>%
+  arrange(desc(spread)) %>%
+  ggplot(aes(x=Date, y=spread, color=coin_type)) +
+  geom_line() +
+  geom_smooth() +
+  labs(title = "Spread over Time",
+         x = "Date",
+         y = "Spread")
+```
+
+Looking at these two attributes, volume and spread, we can see they both have a positive, somewhat linear increasing trend. Let's see if spread and volume have a linear relationship as well.
+
+```{r lm, warning=FALSE, message=FALSE}
+crypto_tab %>%
+  group_by(coin_type) %>%
+  ggplot(aes(x=spread, y=Volume, color=coin_type)) +
+  geom_line() +
+  geom_smooth(method='lm') +
+  labs(title = "Spread vs. Volume",
+         x = "Spread",
+         y = "Volume")
+```
+
+This leads us to the null hypothesis: there is no relationship between spread and volume. Our hypothesis being there is a linear relationship between spread and volume.
+
+```{r rm}
+reg_model <- lm(Volume~spread, data=crypto_tab)
+reg_model_stats <- reg_model %>%
+  tidy()
+
+reg_model_stats
+```
+
+We reject the null hypothesis since the p-value (0.00) is less than our alpha of (.05). The p-value is the probability that we observe our sample results given the null hypothesis is true, meaning there is no relationship between year and life expectancy. 
+
+Now, we are going to take a look at the volume multiplier.
+```{r lm, warning=FALSE, message=FALSE}
+crypto_tab %>%
+  group_by(coin_type) %>%
+  ggplot(aes(x=spread, y=vol_mult, color=coin_type)) +
+  geom_point() +
+  geom_smooth(method='lm') +
+  labs(title = "Spread vs. Volume Multiplier",
+         x = "Spread",
+         y = "Volume Multiplier")
+```
+
+Looking at this graph, we confirm our hypothesis that we can predict the volume based on the spread. Since the volume multiplier is constant, we can use that number to predict volume based on spread, but this only seems to works for Bitcoin.
 
 ---------------------------------------------------------------------------
 Trying to copy project 4 final_df doesnt work.
 ```{r prediction}
 outcome_df <- crypto_tab %>%
-   mutate(Direction = ifelse(spread>0, "up", "down"))
+   mutate(Direction = ifelse(diff>0, "up", "down"))
 outcome_df
 
 predictor_df <- outcome_df %>%
@@ -197,9 +298,9 @@ predictor_df
 
 standardized_df <- predictor_df %>%
   group_by(coin_type) %>%
-  mutate(mean = mean(spread)) %>%
-  mutate(sd = sd(spread)) %>%
-  mutate(z = (spread - mean) / sd) %>%
+  mutate(mean = mean(diff)) %>%
+  mutate(sd = sd(diff)) %>%
+  mutate(z = (diff - mean) / sd) %>%
   ungroup()
 standardized_df
 
