@@ -106,37 +106,38 @@ A great way to start analyzing our data is looking at the minimum and maximum va
 bitcoin = crypto_tab %>%
   filter(coin_type=='bitcoin')
 
-min(bitcoin$Volume)
-max(bitcoin$Volume)
-min(bitcoin$spread)
-max(bitcoin$spread)
-mean(bitcoin$close_ratio)
-median(bitcoin$close_ratio)
-var(bitcoin$close_ratio)
+cat(" Volume Min - ", min(bitcoin$Volume), "\n",
+"Volume Max - ", max(bitcoin$Volume), "\n",
+"Spread Min - ", min(bitcoin$spread), "\n",
+"Spread Max - ", max(bitcoin$spread), "\n",
+"Close Ratio Mean - ", mean(bitcoin$close_ratio), "\n",
+"Close Ratio Median - ", median(bitcoin$close_ratio), "\n",
+"Close Ratio Variance - ", var(bitcoin$close_ratio))
 
 # Ethereum Analysis
 ethereum = crypto_tab %>%
   filter(coin_type=='ethereum')
 
-min(ethereum$Volume)
-max(ethereum$Volume)
-min(ethereum$spread)
-max(ethereum$spread)
-mean(ethereum$close_ratio)
-median(ethereum$close_ratio)
-var(ethereum$close_ratio)
+cat(" Volume Min - ", min(ethereum$Volume), "\n",
+"Volume Max - ", max(ethereum$Volume), "\n",
+"Spread Min - ", min(ethereum$spread), "\n",
+"Spread Max - ", max(ethereum$spread), "\n",
+"Close Ratio Mean - ", mean(ethereum$close_ratio), "\n",
+"Close Ratio Median - ", median(ethereum$close_ratio), "\n",
+"Close Ratio Variance - ", var(ethereum$close_ratio))
 
 # Litecoin Analysis
 litecoin = crypto_tab %>%
   filter(coin_type=='litecoin')
 
-min(litecoin$Volume)
-max(litecoin$Volume)
-min(litecoin$spread)
-max(litecoin$spread)
-mean(litecoin$close_ratio)
-median(litecoin$close_ratio)
-var(litecoin$close_ratio)
+cat(" Volume Min - ", min(litecoin$Volume), "\n",
+"Volume Max - ", max(litecoin$Volume), "\n",
+"Spread Min - ", min(litecoin$spread), "\n",
+"Spread Max - ", max(litecoin$spread), "\n",
+"Close Ratio Mean - ", mean(litecoin$close_ratio), "\n",
+"Close Ratio Median - ", median(litecoin$close_ratio), "\n",
+"Close Ratio Variance - ", var(litecoin$close_ratio))
+
 ```
 
 After gathering our data, we can clearly see there is a large range in volume and spread. The close ratio seems to have little variance, meaning the data points are close to the mean. However, this is still a little difficult to interpret so let's look at some visualizations.

@@ -475,56 +475,56 @@ head(crypto_tab)</code></pre>
 bitcoin = crypto_tab %&gt;%
   filter(coin_type==&#39;bitcoin&#39;)
 
-min(bitcoin$Volume)</code></pre>
-<pre><code>## [1] 2857830</code></pre>
-<pre class="r"><code>max(bitcoin$Volume)</code></pre>
-<pre><code>## [1] 23840900000</code></pre>
-<pre class="r"><code>min(bitcoin$spread)</code></pre>
-<pre><code>## [1] 1.03</code></pre>
-<pre class="r"><code>max(bitcoin$spread)</code></pre>
-<pre><code>## [1] 4110.4</code></pre>
-<pre class="r"><code>mean(bitcoin$close_ratio)</code></pre>
-<pre><code>## [1] 0.5419637</code></pre>
-<pre class="r"><code>median(bitcoin$close_ratio)</code></pre>
-<pre><code>## [1] 0.5685072</code></pre>
-<pre class="r"><code>var(bitcoin$close_ratio)</code></pre>
-<pre><code>## [1] 0.08920444</code></pre>
+cat(&quot; Volume Min - &quot;, min(bitcoin$Volume), &quot;\n&quot;,
+&quot;Volume Max - &quot;, max(bitcoin$Volume), &quot;\n&quot;,
+&quot;Spread Min - &quot;, min(bitcoin$spread), &quot;\n&quot;,
+&quot;Spread Max - &quot;, max(bitcoin$spread), &quot;\n&quot;,
+&quot;Close Ratio Mean - &quot;, mean(bitcoin$close_ratio), &quot;\n&quot;,
+&quot;Close Ratio Median - &quot;, median(bitcoin$close_ratio), &quot;\n&quot;,
+&quot;Close Ratio Variance - &quot;, var(bitcoin$close_ratio))</code></pre>
+<pre><code>##  Volume Min -  2857830 
+##  Volume Max -  23840900000 
+##  Spread Min -  1.03 
+##  Spread Max -  4110.4 
+##  Close Ratio Mean -  0.5419637 
+##  Close Ratio Median -  0.5685072 
+##  Close Ratio Variance -  0.08920444</code></pre>
 <pre class="r"><code># Ethereum Analysis
 ethereum = crypto_tab %&gt;%
   filter(coin_type==&#39;ethereum&#39;)
 
-min(ethereum$Volume)</code></pre>
-<pre><code>## [1] 102128</code></pre>
-<pre class="r"><code>max(ethereum$Volume)</code></pre>
-<pre><code>## [1] 9214950000</code></pre>
-<pre class="r"><code>min(ethereum$spread)</code></pre>
-<pre><code>## [1] 0.018745</code></pre>
-<pre class="r"><code>max(ethereum$spread)</code></pre>
-<pre><code>## [1] 417.09</code></pre>
-<pre class="r"><code>mean(ethereum$close_ratio)</code></pre>
-<pre><code>## [1] 0.5254825</code></pre>
-<pre class="r"><code>median(ethereum$close_ratio)</code></pre>
-<pre><code>## [1] 0.5183181</code></pre>
-<pre class="r"><code>var(ethereum$close_ratio)</code></pre>
-<pre><code>## [1] 0.08526698</code></pre>
+cat(&quot; Volume Min - &quot;, min(ethereum$Volume), &quot;\n&quot;,
+&quot;Volume Max - &quot;, max(ethereum$Volume), &quot;\n&quot;,
+&quot;Spread Min - &quot;, min(ethereum$spread), &quot;\n&quot;,
+&quot;Spread Max - &quot;, max(ethereum$spread), &quot;\n&quot;,
+&quot;Close Ratio Mean - &quot;, mean(ethereum$close_ratio), &quot;\n&quot;,
+&quot;Close Ratio Median - &quot;, median(ethereum$close_ratio), &quot;\n&quot;,
+&quot;Close Ratio Variance - &quot;, var(ethereum$close_ratio))</code></pre>
+<pre><code>##  Volume Min -  102128 
+##  Volume Max -  9214950000 
+##  Spread Min -  0.018745 
+##  Spread Max -  417.09 
+##  Close Ratio Mean -  0.5254825 
+##  Close Ratio Median -  0.5183181 
+##  Close Ratio Variance -  0.08526698</code></pre>
 <pre class="r"><code># Litecoin Analysis
 litecoin = crypto_tab %&gt;%
   filter(coin_type==&#39;litecoin&#39;)
 
-min(litecoin$Volume)</code></pre>
-<pre><code>## [1] 481714</code></pre>
-<pre class="r"><code>max(litecoin$Volume)</code></pre>
-<pre><code>## [1] 6961680000</code></pre>
-<pre class="r"><code>min(litecoin$spread)</code></pre>
-<pre><code>## [1] 0.01</code></pre>
-<pre class="r"><code>max(litecoin$spread)</code></pre>
-<pre><code>## [1] 132.82</code></pre>
-<pre class="r"><code>mean(litecoin$close_ratio)</code></pre>
-<pre><code>## [1] 0.4936874</code></pre>
-<pre class="r"><code>median(litecoin$close_ratio)</code></pre>
-<pre><code>## [1] 0.5</code></pre>
-<pre class="r"><code>var(litecoin$close_ratio)</code></pre>
-<pre><code>## [1] 0.09009817</code></pre>
+cat(&quot; Volume Min - &quot;, min(litecoin$Volume), &quot;\n&quot;,
+&quot;Volume Max - &quot;, max(litecoin$Volume), &quot;\n&quot;,
+&quot;Spread Min - &quot;, min(litecoin$spread), &quot;\n&quot;,
+&quot;Spread Max - &quot;, max(litecoin$spread), &quot;\n&quot;,
+&quot;Close Ratio Mean - &quot;, mean(litecoin$close_ratio), &quot;\n&quot;,
+&quot;Close Ratio Median - &quot;, median(litecoin$close_ratio), &quot;\n&quot;,
+&quot;Close Ratio Variance - &quot;, var(litecoin$close_ratio))</code></pre>
+<pre><code>##  Volume Min -  481714 
+##  Volume Max -  6961680000 
+##  Spread Min -  0.01 
+##  Spread Max -  132.82 
+##  Close Ratio Mean -  0.4936874 
+##  Close Ratio Median -  0.5 
+##  Close Ratio Variance -  0.09009817</code></pre>
 <p>After gathering our data, we can clearly see there is a large range in volume and spread. The close ratio seems to have little variance, meaning the data points are close to the mean. However, this is still a little difficult to interpret so let’s look at some visualizations.</p>
 <pre class="r"><code>crypto_tab %&gt;%
   ggplot(aes(x=Date, y=Open, color=coin_type)) +
@@ -673,25 +673,25 @@ printcp(tree)</code></pre>
 ## n= 1248 
 ## 
 ##            CP nsplit rel error   xerror      xstd
-## 1  0.43230594      0 1.0000000 1.001437 0.0889546
-## 2  0.04608862      2 0.1353881 0.137829 0.0110370
-## 3  0.02609128      3 0.0892995 0.092721 0.0098942
-## 4  0.00687412      5 0.0371170 0.037001 0.0030396
-## 5  0.00643944      6 0.0302428 0.033234 0.0029872
-## 6  0.00526295      7 0.0238034 0.027955 0.0030160
-## 7  0.00239510      8 0.0185404 0.024773 0.0030755
-## 8  0.00230675      9 0.0161453 0.024521 0.0030653
-## 9  0.00173961     10 0.0138386 0.021047 0.0028086
-## 10 0.00161309     11 0.0120990 0.019549 0.0027793
-## 11 0.00119971     12 0.0104859 0.017910 0.0026516
-## 12 0.00092275     13 0.0092862 0.015659 0.0025753
-## 13 0.00085547     14 0.0083634 0.015683 0.0025827
-## 14 0.00033304     15 0.0075080 0.014805 0.0025663
-## 15 0.00032685     16 0.0071749 0.014416 0.0025662
-## 16 0.00017249     18 0.0065212 0.013714 0.0025680
-## 17 0.00015466     19 0.0063487 0.013600 0.0025564
-## 18 0.00011384     20 0.0061941 0.013615 0.0025564
-## 19 0.00010000     21 0.0060802 0.013538 0.0025560</code></pre>
+## 1  0.43230594      0 1.0000000 1.001130 0.0888563
+## 2  0.04608862      2 0.1353881 0.138640 0.0109772
+## 3  0.02609128      3 0.0892995 0.092042 0.0097168
+## 4  0.00687412      5 0.0371170 0.039655 0.0034107
+## 5  0.00643944      6 0.0302428 0.034868 0.0032922
+## 6  0.00526295      7 0.0238034 0.026228 0.0031925
+## 7  0.00239510      8 0.0185404 0.025202 0.0033677
+## 8  0.00230675      9 0.0161453 0.023252 0.0032833
+## 9  0.00173961     10 0.0138386 0.022497 0.0032308
+## 10 0.00161309     11 0.0120990 0.018538 0.0028675
+## 11 0.00119971     12 0.0104859 0.018180 0.0028656
+## 12 0.00092275     13 0.0092862 0.016176 0.0028038
+## 13 0.00085547     14 0.0083634 0.016170 0.0028037
+## 14 0.00033304     15 0.0075080 0.015235 0.0027815
+## 15 0.00032685     16 0.0071749 0.014654 0.0027748
+## 16 0.00017249     18 0.0065212 0.014070 0.0027763
+## 17 0.00015466     19 0.0063487 0.014065 0.0027761
+## 18 0.00011384     20 0.0061941 0.014032 0.0027759
+## 19 0.00010000     21 0.0060802 0.013933 0.0027756</code></pre>
 <p>The chart produced is showing the error and standard deviation as the number of splits is increased until we reach the cp value in designated in out control function.</p>
 <p>We then next find the tree with the best cp, which is the cp value that is the smallest and should be the same value as the cp value given in our control function. We next prune the tree, to simplify it and remove uneccessary forks and complexity. We then print our tree using prp, which will print out the tree in a pretty format.</p>
 <pre class="r"><code>bestcp &lt;- tree$cptable[which.min(tree$cptable[,&quot;xerror&quot;]),&quot;CP&quot;]
