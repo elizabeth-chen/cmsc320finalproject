@@ -238,7 +238,7 @@ crypto_tab %>%
          y = "Volume")
 ```
 
-```{r spread, warning=FALSE, message=FALSE}
+```{r spread2, warning=FALSE, message=FALSE}
 crypto_tab %>%
   group_by(coin_type) %>%
   arrange(desc(spread)) %>%
@@ -276,7 +276,7 @@ reg_model_stats
 We reject the null hypothesis since the p-value (0.00) is less than our alpha of (.05). The p-value is the probability that we observe our sample results given the null hypothesis is true, meaning there is no relationship between year and life expectancy. 
 
 Now, we are going to take a look at the volume multiplier.
-```{r lm, warning=FALSE, message=FALSE}
+```{r lm2, warning=FALSE, message=FALSE}
 crypto_tab %>%
   group_by(coin_type) %>%
   ggplot(aes(x=spread, y=vol_mult, color=coin_type)) +
@@ -289,59 +289,69 @@ crypto_tab %>%
 
 Looking at this graph, we confirm our hypothesis that we can predict the volume based on the spread. Since the volume multiplier is constant, we can use that number to predict volume based on spread, but this only seems to works for Bitcoin.
 
-## 
+## Machine Learning: Decision Tree
+
+We start our exploration into machine learning with Decsision Trees. Decision Trees are quite simple. You traverse the tree by starting at the top and making a decision based on a boolean statement. If your parameters return true at a fork, traverse left down the tree, else go down the right tree. You continue this pattern of decsions until you reach a leaf, and within this leaf should be the predicted value. 
+We will now show the decision tree in action. In this example, we want to see if we can predict the High value of the cryptocurrency based on its coin type and date. First, we will make and show a decision tree to give an overall idea of the general structure, then we will see if we can make a decision tree model that can accurately make predictions.
+
+First, lets make a tree. We start by calling rpart, which "grows" a tree given the data parameters we wish to use, the data with which we want the tree to be built upon, and a control function. Here, I use a built in control function that stops computation once a cp value is reached, but this control function can be replaced with one that you write or another built in one. The purpose of limiting the complexity is to make a model that is complex enough to be acurate, but not too complex to only work with this dataset.
+
+
+
 ```{r creating tree}
-set.seed(123)
-prediction_set <- crypto_tab %>%
-  select(-Open, -Low, -Close, -Volume, -`Market Cap`, -close_ratio, -spread)
-index <- createDataPartition(y=prediction_set$High, p=0.8, list=FALSE)
 
-data_train <- prediction_set[index,]
-data_test <- prediction_set[-index,]
-
-tree <- rpart(High~Date+coin_type, data = data_train, control = rpart.control(cp = 0.0001))
+tree <- rpart(High~coin_type+Date, data = crypto_tab, control = rpart.control(cp = 0.0001))
 
 printcp(tree)
 
+```
+The chart produced is showing the error and standard deviation as the number of splits is increased until we reach the cp value in designated in out control function. 
+
+We then next find the tree with the best cp, which is the cp value that is the smallest and should be the same value as the cp value given in our control function. We next prune the tree, to simplify it and remove uneccessary forks and complexity. We then print our tree using prp, which will print out the tree in a pretty format.
+``` {r prune}
 bestcp <- tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"]
 
 tree.pruned <- prune(tree, cp = bestcp)
 
-prp(tree.pruned, faclen = 0, cex = 0.7, extra = 1)
-
+prp(tree.pruned, faclen = 0, cex = 0.6, extra = 1)
 ```
+
+As you can see from this tree, the first fork splits into two trees based on if the coin type was litecoin or ethereum, or not. This can be seen in the chart for High over Date, grouped by coin type. Litecoin and ethereum are relatively close to each other compared to bitcoin, so it makes sense for that to be the initial split that the tree makes. You can see further down on the tree on the left that eventually it does split ethereum and litecoin, but not for a little but, signifying their similarities in high values.
+
+Now, we will apply the production of decision trees into a model for predicting. To accomplish this we split our data into a partition of data that we will train the model on and data we train the model on. I also remove unneccessary attributes that are not needed in our prediction of the High value based on Date and Coin Type. After that, we create the model based on our training set using the same function we used in the above example. We then run our test data through the model to predict the High for each entity. I then calculate the squared error for each value, which is $$(predicted - actual)^2$$, sum up all these squared errors and take the squared root. I judge the accuracy of my model based on this root mean squared error value (RMSE). We want to have a rmse relative to the range of values.
+
+``` {r partition}
+set.seed(123)
+prediction_set <- crypto_tab %>%
+  select(-Open, -Low, -Close, -Volume, -`Market Cap`, -close_ratio, -diff)
+index <- createDataPartition(y=prediction_set$spread, p=0.8, list=FALSE)
+
+data_train <- prediction_set[index,]
+data_test <- prediction_set[-index,]
+
+decision_tree <- rpart(High~coin_type+Date, data=data_train)
+predictions_decision <- predict(decision_tree, data_test)
+cbind(data_test, predictions_decision) %>%
+  mutate(se = ((High - predictions_decision)^2)/n()) %>%
+  summarize(rmse = sqrt(sum(se)))
+
+range(crypto_tab$High)
+```
+
+My model has a RMSE of 753.0129. This isnt a terrible value, but certainly isnt great. This means that on average, our prediction of high is off by 753.0129. With a range of 3.77 to 20089.00 means that this value is relatively ok, but if I was an investorin cryptocurrencies, I wouldn't want my prediction to have an error of 753, so lets see if we can get it to be smaller.
+
+Another, method for creating and determining the strength of a model is Cross Validation. In this example, we will be using 10 fold cross validation. This means that we split our data into 10 partitions, use 9 partions to train the data, and one partiotion to test, and we repeat this 10 times until all partions are used to test. We do this to... TODO.
+
+To train a fit for the model, we use the train function included in the caret package. This function first takes in a formula for prediction, which in our case is predicting High based on coin type and date. Then it takes the data we are using as a parameter along with the method used for the model, and in our case we use a  decision tree, so we set our method to be equal to "rpart". Next the train function takes in a control function. This is were the 10-fold cross validation comes it. We use the trainControl function, and give it parameters, cv and 10 for 10 fold cross validation. We also give the train function a tuneLength... TODO i have no clue why
+
+
 
 ``` {r train}
 train_control <- trainControl(method="cv", number=10)
-tree_fit <- train(High~Date+coin_type, data=prediction_set, method="rpart", trControl=train_control, tuneLength=10)
+tree_fit <- train(High~coin_type+Date, data=crypto_tab, method="rpart", trControl=train_control, tuneLength=10)
 tree_fit
 ```
 
-
-``` {r forrest}
-library(randomForest)
-prediction_set <- crypto_tab %>%
-  select(-Open, -Low, -Close, -Volume, -`Market Cap`, -close_ratio, -spread)
-
-#Data Partition
-samp_index <- sample(2, nrow(prediction_set), replace = T, prob = c(0.6,0.4))
-trainer <- prediction_set[samp_index == 1,]
-validator <- prediction_set[samp_index == 2,]
-
-#Classifier
-prediction_set$High <- as.factor(prediction_set$High)
-
-#Formula
-attributes <- names(prediction_set)
-attributes <- attributes[!attributes %in% c("High")]
-attributes1 <- paste(attributes, collapse = "+") #saves the column names separated by +
-formula_rf <- as.formula(paste("High", attributes1, sep = " ~ "))
-
-#forest_control <- trainControl(method="cv", classProbs = TRUE, savePredictions = TRUE)
-#forest_fit <- train(profitable~., data=prediction_set, method="rf", trControl=forest_control)
-#Model
-model_rf <- randomForest(formula_rf, trainer, ntree = 1000, importance = TRUE)
-plot(model_rf)
-```
+As you can see, most of our models produce RMSE lower than our model above, which just used a simple partioning of the data. A 404.1065 is better than our previously computed 753.01, but is still not entirely great. This shows that the Decsion Tree model is not the most accurate model in predicting. It also shows the complexity of predicting the price of bitcoin over time. There are more outside factors that affect the price that are not present in this dataset and probably couldnt be measured to even be put in a dataset. TODO go in more depth about the complexity of computing price. 
 
 
