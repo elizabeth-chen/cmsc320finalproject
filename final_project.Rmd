@@ -294,6 +294,7 @@ Looking at this graph, we confirm our hypothesis that we can predict the volume 
 ## Machine Learning: Decision Tree
 
 We start our exploration into machine learning with Decsision Trees. Decision Trees are quite simple. You traverse the tree by starting at the top and making a decision based on a boolean statement. If your parameters return true at a fork, traverse left down the tree, else go down the right tree. You continue this pattern of decsions until you reach a leaf, and within this leaf should be the predicted value. 
+
 We will now show the decision tree in action. In this example, we want to see if we can predict the High value of the cryptocurrency based on its coin type and date. First, we will make and show a decision tree to give an overall idea of the general structure, then we will see if we can make a decision tree model that can accurately make predictions.
 
 First, lets make a tree. We start by calling rpart, which "grows" a tree given the data parameters we wish to use, the data with which we want the tree to be built upon, and a control function. Here, I use a built in control function that stops computation once a cp value is reached, but this control function can be replaced with one that you write or another built in one. The purpose of limiting the complexity is to make a model that is complex enough to be acurate, but not too complex to only work with this dataset.
@@ -318,7 +319,7 @@ tree.pruned <- prune(tree, cp = bestcp)
 prp(tree.pruned, faclen = 0, cex = 0.6, extra = 1)
 ```
 
-As you can see from this tree, the first fork splits into two trees based on if the coin type was litecoin or ethereum, or not. This can be seen in the chart for High over Date, grouped by coin type. Litecoin and ethereum are relatively close to each other compared to bitcoin, so it makes sense for that to be the initial split that the tree makes. You can see further down on the tree on the left that eventually it does split ethereum and litecoin, but not for a little but, signifying their similarities in high values.
+As you can see from this tree, the first fork splits into two trees based on if the coin type was Litecoin or Ethereum, or not. This can be seen in the chart for High over Date, grouped by coin type. Litecoin and Ethereum are relatively close to each other compared to Bitcoin, so it makes sense for that to be the initial split that the tree makes. You can see further down on the tree on the left that eventually it does split Ethereum and Litecoin, but not for a little but, signifying their similarities in high values.
 
 Now, we will apply the production of decision trees into a model for predicting. To accomplish this we split our data into a partition of data that we will train the model on and data we train the model on. I also remove unneccessary attributes that are not needed in our prediction of the High value based on Date and Coin Type. After that, we create the model based on our training set using the same function we used in the above example. We then run our test data through the model to predict the High for each entity. I then calculate the squared error for each value, which is $$(predicted - actual)^2$$, sum up all these squared errors and take the squared root. I judge the accuracy of my model based on this root mean squared error value (RMSE). We want to have a rmse relative to the range of values.
 
@@ -340,7 +341,7 @@ cbind(data_test, predictions_decision) %>%
 range(crypto_tab$High)
 ```
 
-My model has a RMSE of 753.0129. This isnt a terrible value, but certainly isnt great. This means that on average, our prediction of high is off by 753.0129. With a range of 3.77 to 20089.00 means that this value is relatively ok, but if I was an investorin cryptocurrencies, I wouldn't want my prediction to have an error of 753, so lets see if we can get it to be smaller.
+Our model has a RMSE of 753.0129. This isnt a terrible value, but certainly isnt great. This means that on average, our prediction of high is off by 753.0129. With a range of 3.77 to 20089.00 means that this value is relatively ok, but if I was an investorin cryptocurrencies, I wouldn't want my prediction to have an error of 753, so lets see if we can get it to be smaller.
 
 Another, method for creating and determining the strength of a model is Cross Validation. In this example, we will be using 10 fold cross validation. This means that we split our data into 10 partitions, use 9 partions to train the data, and one partiotion to test, and we repeat this 10 times until all partions are used to test. We do this to... TODO.
 
@@ -354,6 +355,19 @@ tree_fit <- train(High~coin_type+Date, data=crypto_tab, method="rpart", trContro
 tree_fit
 ```
 
-As you can see, most of our models produce RMSE lower than our model above, which just used a simple partioning of the data. A 404.1065 is better than our previously computed 753.01, but is still not entirely great. This shows that the Decsion Tree model is not the most accurate model in predicting. It also shows the complexity of predicting the price of bitcoin over time. There are more outside factors that affect the price that are not present in this dataset and probably couldnt be measured to even be put in a dataset. TODO go in more depth about the complexity of computing price. 
+As you can see, most of our models produce RMSE lower than our model above, which just used a simple partioning of the data. A 404.1065 is better than our previously computed 753.01, but is still not entirely great. This shows that the Decsion Tree model is not the most accurate model in predicting. It also shows the complexity of predicting the price of bitcoin over time. There are more outside factors that affect the price that are not present in this dataset and probably couldn't be measured to even be put in a dataset. TODO go in more depth about the complexity of computing price. 
+
+## Conclusion
+Throughout this tutorial, we have gone through the entire data science pipeline exploring our cryptocurrency dataset. We found that there is a linear relationship between spread and volume (for Bitcoin), which will allow us to predict the volume of trade based on the range in trading price for the day. This tells us that depending on the volatility of the cryptocurrency market, we are able to determine the volume of trade for that day. In the future, this may be useful to predict future market positions.
 
 
+-- insert machine learning part --
+
+We also explored the possibility for predicting high trading prices depending on the cryptocurrency and date. While this was somewhat successful, the correlation is highly reliant on the current news which impacts cryptocurrency stocks. Just last week, Bitcoin crossed $10,000 for the first time as a result of an upcoming "halving event". Consequently, past stock prices can not predict future prices because news events have different magnitudes of effect on stock and they happen at arbitrary dates. 
+
+Possible future solutions include: monitoring social media platforms for trends, predicting major new events and their magnitudes; or even using sentiment analysis on current news to predict high stock prices. While these techniques are not covered in this particular tutorial, we still have learned a lot about the cryptocurrency market using our data science techniques and possibly venture into actual trading one day. Maybe we might even be able to create an algorithm to do this for us.
+
+### Additional Resources
+https://www.cnbc.com/2020/05/08/bitcoin-btc-cryptocurrency-prices-rise-as-halving-approaches.html
+https://towardsdatascience.com/https-towardsdatascience-com-algorithmic-trading-using-sentiment-analysis-on-news-articles-83db77966704
+https://nlp.stanford.edu/courses/cs224n/2011/reports/nccohen-aatreya-jameszjj.pdf 
