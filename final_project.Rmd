@@ -273,7 +273,7 @@ reg_model_stats <- reg_model %>%
 reg_model_stats
 ```
 
-We reject the null hypothesis since the p-value (0.00) is less than our alpha of (.05). The p-value is the probability that we observe our sample results given the null hypothesis is true, meaning there is no relationship between year and life expectancy. 
+We reject the null hypothesis since the p-value (0.00) is less than our alpha of (.05). The p-value is the probability that we observe our sample results given the null hypothesis is true, meaning there is no relationship between volume and spread. 
 
 Now, we are going to take a look at the volume multiplier.
 ```{r lm2, warning=FALSE, message=FALSE}
