@@ -32,7 +32,7 @@ Ethereum is a cryptocurrency that took the technology behind bitcoin and expande
 ## Environment Setup
 
 Libraries used to conduct our tutorial through the data science pipeline. 
-```{r setup}
+```{r setup, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(lubridate)
@@ -51,7 +51,7 @@ We are using datasets from https://www.kaggle.com/sudalairajkumar/cryptocurrency
   
 After downloading the dataset, we put each csv into its own table, then gave it an identifier of its type, then combined all three tables into one for easier data manipulation. All three datasets had the same column names making it easier to combine into something useful. We then used a lubridate function that made the Data column more useful for comparison and sorted by the date.
 
-```{r load_data, warnings=FALSE}
+```{r load_data, warnings=FALSE, message=FALSE}
 bitcoin_tab <- read_csv("datasets/bitcoin_price.csv")
 litecoin_tab <- read_csv("datasets/litecoin_price.csv")
 ethereum_tab <- read_csv("datasets/ethereum_price.csv")
@@ -102,40 +102,41 @@ Now that we have our data all nice and sorted, let's begin some exploratory data
 A great way to start analyzing our data is looking at the minimum and maximum values of volume and spread so we know where our bounds are. Mean, median and variance are also important measures of central tendency which can tell us about the averages, where the majority of the data lie, and the spread of our data.
 
 ``` {r analysis}
-print("Bitcoin Analysis:")
+# Bitcoin Analysis
 bitcoin = crypto_tab %>%
   filter(coin_type=='bitcoin')
-cat("Volume Min - ", min(bitcoin$Volume), "\n")
-cat("Volume Max - ", max(bitcoin$Volume), "\n")
-cat("Spread Min - ", min(bitcoin$spread), "\n")
-cat("Spread Max - ", max(bitcoin$spread), "\n")
-cat("Close Ratio Mean - ", mean(bitcoin$close_ratio), "\n")
-cat("Close Ratio Median - ", median(bitcoin$close_ratio), "\n")
-cat("Close Ratio Variance - ", var(bitcoin$close_ratio), "\n")
 
-cat("\n")
-print("Ethereum Analysis:")
+min(bitcoin$Volume)
+max(bitcoin$Volume)
+min(bitcoin$spread)
+max(bitcoin$spread)
+mean(bitcoin$close_ratio)
+median(bitcoin$close_ratio)
+var(bitcoin$close_ratio)
+
+# Ethereum Analysis
 ethereum = crypto_tab %>%
   filter(coin_type=='ethereum')
-cat("Volume Min - ", min(ethereum$Volume), "\n")
-cat("Volume Max - ", max(ethereum$Volume), "\n")
-cat("Spread Min - ", min(ethereum$spread), "\n")
-cat("Spread Max - ", max(ethereum$spread), "\n")
-cat("Close Ratio Mean - ", mean(ethereum$close_ratio), "\n")
-cat("Close Ratio Median - ", median(ethereum$close_ratio), "\n")
-cat("Close Ratio Variance - ", var(ethereum$close_ratio), "\n")
 
-cat("\n")
-print("Litecoin Analysis:")
+min(ethereum$Volume)
+max(ethereum$Volume)
+min(ethereum$spread)
+max(ethereum$spread)
+mean(ethereum$close_ratio)
+median(ethereum$close_ratio)
+var(ethereum$close_ratio)
+
+# Litecoin Analysis
 litecoin = crypto_tab %>%
   filter(coin_type=='litecoin')
-cat("Volume Min - ", min(litecoin$Volume), "\n")
-cat("Volume Max - ", max(litecoin$Volume), "\n")
-cat("Spread Min - ", min(litecoin$spread), "\n")
-cat("Spread Max - ", max(litecoin$spread), "\n")
-cat("Close Ratio Mean - ", mean(litecoin$close_ratio), "\n")
-cat("Close Ratio Median - ", median(litecoin$close_ratio), "\n")
-cat("Close Ratio Variance - ", var(litecoin$close_ratio), "\n")
+
+min(litecoin$Volume)
+max(litecoin$Volume)
+min(litecoin$spread)
+max(litecoin$spread)
+mean(litecoin$close_ratio)
+median(litecoin$close_ratio)
+var(litecoin$close_ratio)
 ```
 
 After gathering our data, we can clearly see there is a large range in volume and spread. The close ratio seems to have little variance, meaning the data points are close to the mean. However, this is still a little difficult to interpret so let's look at some visualizations.
@@ -191,7 +192,7 @@ crypto_tab %>%
 ```
 
 Now, we are going to look at close ratio over time.
-``` {r ratio}
+``` {r ratio, warning=FALSE, message=FALSE}
 crypto_tab %>%
   ggplot(aes(x=Date, y=close_ratio, color=coin_type)) +
   geom_point() +
