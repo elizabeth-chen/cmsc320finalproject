@@ -39,6 +39,10 @@ library(lubridate)
 library(caret)
 library(broom)
 library(pracma)
+library(caret)
+library(rpart)
+library(rpart.plot)
+library(plotROC)
 ```
 
 ## Data Curation and Parsing
@@ -285,48 +289,59 @@ crypto_tab %>%
 
 Looking at this graph, we confirm our hypothesis that we can predict the volume based on the spread. Since the volume multiplier is constant, we can use that number to predict volume based on spread, but this only seems to works for Bitcoin.
 
----------------------------------------------------------------------------
-Trying to copy project 4 final_df doesnt work.
-```{r prediction}
-outcome_df <- crypto_tab %>%
-   mutate(Direction = ifelse(diff>0, "up", "down"))
-outcome_df
+## 
+```{r creating tree}
+set.seed(123)
+prediction_set <- crypto_tab %>%
+  select(-Open, -Low, -Close, -Volume, -`Market Cap`, -close_ratio, -spread)
+index <- createDataPartition(y=prediction_set$High, p=0.8, list=FALSE)
 
-predictor_df <- outcome_df %>%
-  filter(year(Date) < 2018)
-predictor_df
+data_train <- prediction_set[index,]
+data_test <- prediction_set[-index,]
 
-standardized_df <- predictor_df %>%
-  group_by(coin_type) %>%
-  mutate(mean = mean(diff)) %>%
-  mutate(sd = sd(diff)) %>%
-  mutate(z = (diff - mean) / sd) %>%
-  ungroup()
-standardized_df
+tree <- rpart(High~Date+coin_type, data = data_train, control = rpart.control(cp = 0.0001))
 
-wide_df <- standardized_df %>%
-  select(coin_type, Date, z) %>%
-  tidyr::spread(Date, z)
+printcp(tree)
 
-matrix_1 <- wide_df %>%
-  select(-coin_type) %>%
-  as.matrix() %>%
-  .[,-1]
+bestcp <- tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"]
 
-matrix_2 <- wide_df %>%
-  select(-coin_type) %>%
-  as.matrix() %>%
-  .[,-ncol(.)]
+tree.pruned <- prune(tree, cp = bestcp)
 
-diff_df <- (matrix_1 - matrix_2) %>%
-  magrittr::set_colnames(NULL) %>%
-  as_data_frame() %>%
-  mutate(coin_type = wide_df$coin_type)
+prp(tree.pruned, faclen = 0, cex = 0.7, extra = 1)
 
-final_df <- diff_df %>%
-  inner_join(outcome_df %>% select(coin_type, Direction), by="coin_type") %>%
-  mutate(Direction=factor(Direction, levels=c("down", "up"))) %>%
-  select(-coin_type)
-final_df
 ```
+
+``` {r train}
+train_control <- trainControl(method="cv", number=10)
+tree_fit <- train(High~Date+coin_type, data=prediction_set, method="rpart", trControl=train_control, tuneLength=10)
+tree_fit
+```
+
+
+``` {r forrest}
+library(randomForest)
+prediction_set <- crypto_tab %>%
+  select(-Open, -Low, -Close, -Volume, -`Market Cap`, -close_ratio, -spread)
+
+#Data Partition
+samp_index <- sample(2, nrow(prediction_set), replace = T, prob = c(0.6,0.4))
+trainer <- prediction_set[samp_index == 1,]
+validator <- prediction_set[samp_index == 2,]
+
+#Classifier
+prediction_set$High <- as.factor(prediction_set$High)
+
+#Formula
+attributes <- names(prediction_set)
+attributes <- attributes[!attributes %in% c("High")]
+attributes1 <- paste(attributes, collapse = "+") #saves the column names separated by +
+formula_rf <- as.formula(paste("High", attributes1, sep = " ~ "))
+
+#forest_control <- trainControl(method="cv", classProbs = TRUE, savePredictions = TRUE)
+#forest_fit <- train(profitable~., data=prediction_set, method="rf", trControl=forest_control)
+#Model
+model_rf <- randomForest(formula_rf, trainer, ntree = 1000, importance = TRUE)
+plot(model_rf)
+```
+
 
