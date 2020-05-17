@@ -16,7 +16,7 @@ Cryptocurrencies use a technology called blockchain, which is a decentralized te
 
 According to CoinMarketCap.com, a market research website, more than 2,200 different cryptocurrencies are traded publicly. The total value of all cryptocurrencies as of June 2019 was estimated to be $246 billion. Since the cryptocurrency market is still fairly young, the current stock prices of cryptocurrencies can vary quite a bit. We hope to do some analysis on the following types of cryptocurrencies to see if we can predict some current market trends: Bitcoin, Litecoin and Ethereum.
 
-For more information on how cryptocurrencies work: https://blockgeeks.com/guides/what-is-cryptocurrency/
+For more information on how cryptocurrencies work: https://blockgeeks.com/guides/what-is-cryptocurrency/ \
 For more information on cryptocurrency prices: https://cointelegraph.com/explained/how-cryptocurrency-prices-work-explained
 
 Created in 2009 by Satoshi Nakamoto, Bitcoin was the first widely adopted cryptocurrency. Bitcoin not only uses peer-to-peer technology to operate with no central authority or banks, but also collectively manages transactions and bitcoin’s issuance. Bitcoin is open-source; its design is public, nobody owns or controls Bitcoin and everyone can take part. Nowadays, Bitcoin has become synonymous with cryptocurrency, however, this is not the only type of cryptocurrency available.
