@@ -7,7 +7,7 @@ output: html_document
 ## Introduction
 Similar to common currencies, cryptocurrencies can be used to buy products and services. However, unlike other currencies, cryptocurrencies are digital and use cryptography to provide secure online transactions. Much of the interest in these unregulated currencies is to trade for profit even though cryptocurrencies can be in used regular purchase. Speculators at times drove prices of cryptocurrencies skyward. 
 
-In this tutorial, we will cover the entire data science pipeline: data curation, parsing, and management; exploratory data analysis; hypothesis testing and machine learning. We will use R to carry out various techniques of predicting financial market movements, specifically volume of different cryptocurrencies trade. 
+In this tutorial, we will cover the entire data science pipeline: data curation, parsing, and management; exploratory data analysis; hypothesis testing and machine learning. We will use R to carry out various techniques of predicting financial market movements, specifically the volume and high price of different cryptocurrencies trade. 
 
 ## Preface and Background
 Cryptocurrency is a form of payment that can be exchanged online for products and services. Many companies have issued their own cryptocurrencies, often called tokens, which can be used specifically to purchase the products and services provided by the company. Cryptocurrency can be considered similar to arcade tokens or casino chips, which need to be purchased or exchanged with real currency.
@@ -51,15 +51,15 @@ We are using datasets from https://www.kaggle.com/sudalairajkumar/cryptocurrency
   
 After downloading the dataset from kaggle, we put each csv into its own table using the function read_csv.  
 
-```{r csv, warnings=FALSE, message=FALSE}
+```{r csv, warning=FALSE, message=FALSE}
 bitcoin_tab <- read_csv("datasets/bitcoin_price.csv")
 litecoin_tab <- read_csv("datasets/litecoin_price.csv")
 ethereum_tab <- read_csv("datasets/ethereum_price.csv")
 ```
 
-We then give each entity an identifier of its type, meaning every entity in the litecoin table will have an attribute labeling it as litecoin. This allows us to determine the type of the coin once we combine them all ito one table.
+We then give each entity an identifier of its type, meaning every entity in the Litecoin table will have an attribute labeling it as Litecoin. This allows us to determine the type of the coin once we combine them all ito one table.
 
-```{r coin_type, warnings=FALSE, message=FALSE}
+```{r coin_type, warning=FALSE, message=FALSE}
 bitcoin_tab <- mutate(bitcoin_tab, coin_type="bitcoin")
 litecoin_tab <- mutate(litecoin_tab, coin_type="litecoin")
 ethereum_tab <- mutate(ethereum_tab, coin_type="ethereum")
@@ -82,19 +82,23 @@ In the end, this results in a data table with all values from three different cr
 ## Data Management
 
 Currently in our dataset, we have the following attributes: 
-* Date - Date refers to the calendar date for the particular row - 24 hours midnight to midnight
-* Open - Open is what the price was at the beginning of the day
-* High - Highest recorded trading price of the day
-* Low - Lowest recorded trading price of the day
-* Close - Close is what the price was at the end of the day
-* Volume - Volume represents the monetary value of the currency traded in a 24 hour period, denoted in USD
-* Market Cap - Market cap is circulating supply x price of the coin. For example, if you have 100 coins that are worth \$10 each your market cap is \$1,000
 
-We want to add the following new attributes for our data analysis later on: spread and volume multipli.
-* Close ratio is the daily close rate, min-maxed with the high and low values for the day. Close Ratio = (Close-Low)/(High-Low)
-* Spread is the $USD difference between the high and low values for the day.
-* Volume Multiplier is the constant relationship between spread and trading volume. Volume Multiplier = Volume/Spread
-* Difference is the $USD difference between the opening and closing values for the day.
+  * Date - Date refers to the calendar date for the particular row - 24 hours midnight to midnight
+  * Open - Open is what the price was at the beginning of the day
+  * High - Highest recorded trading price of the day
+  * Low - Lowest recorded trading price of the day
+  * Close - Close is what the price was at the end of the day
+  * Volume - Volume represents the monetary value of the currency traded in a 24 hour period, denoted in USD
+  * Market Cap - Market Cap is circulating supply x price of the coin. For example, if you have 100 coins that are worth \$10 each your market cap is \$1,000
+  * Coin Type - Type of cryptocurrency
+
+We want to add the following new attributes for our data analysis later on: close ratio, spread, difference and volume multiplier.
+
+  * Close ratio is the daily close rate, min-maxed with the high and low values for the day. Close Ratio = (Close-Low)/(High-Low)
+  * Spread is the $USD difference between the high and low values for the day.
+  * Difference is the $USD difference between the opening and closing values for the day.
+  * Volume Multiplier is the constant relationship between spread and trading volume. Volume Multiplier = Volume/Spread
+
 
 ```{r add_attr}
 crypto_tab = crypto_tab %>%
@@ -311,7 +315,7 @@ We will now show the decision tree in action. In our Exploratory Data Analysis, 
 
 First, we will make and show a decision tree to give an overall idea of the general structure, then we will see if we can make a decision tree model that can accurately make predictions.
 
-First, lets make a tree. We start by calling rpart, which "grows" a tree given the data parameters we wish to use, the data with which we want the tree to be built upon, and a control function. Here, I use a built in control function that stops computation once a cp value is reached, but this control function can be replaced with one that you write or another built in one. The purpose of limiting the complexity is to make a model that is complex enough to be acurate, but not too complex to only work with this dataset.
+First, lets make a tree. We start by calling rpart, which "grows" a tree given the data parameters we wish to use, the data with which we want the tree to be built upon, and a control function. Here, we will use a built in control function that stops computation once a cp value is reached, but this control function can be replaced with one that you write or another built in one. The purpose of limiting the complexity is to make a model that is complex enough to be acurate, but not too complex to only work with this dataset.
 
 
 ```{r creating tree}
@@ -322,7 +326,7 @@ printcp(tree)
 
 The chart produced is showing the error and standard deviation as the number of splits is increased until we reach the cp value in designated in out control function. 
 
-Next, we find the tree with the best cp, which is the cp value that is the smallest and should be the same value as the cp value given in our control function. We then prune the tree, to simplify it and remove uneccessary forks and complexity. Then we print our tree using prp, which will print out the tree in a pretty format.
+Next, we find the tree with the best cp, which is the cp value that is the smallest and should be the same value as the cp value given in our control function. We then prune the tree, to simplify it and remove unneccessary forks and complexity. Next, we print our tree using prp, which will print out the tree in a pretty format.
 
 ``` {r prune}
 bestcp <- tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"]
@@ -334,7 +338,7 @@ prp(tree.pruned, faclen = 0, cex = 0.45, extra = 1)
 
 As you can see from this tree, the first fork splits into two trees based on if the coin type was Litecoin or Ethereum, or not. In our chart for high over time, Litecoin and Ethereums' High values are relatively close to each other compared to Bitcoin's, so it makes sense for this to be the initial split that the tree makes. You can see further down on the tree on the left that eventually it does split Ethereum and Litecoin, but not for a little bit, signifying their similarities in high values.
 
-Now, we will apply the production of decision trees into a model for predicting. To accomplish this we split our data into a partition of data that we will train the model on and data we train the model on. I also remove unneccessary attributes that are not needed in our prediction of the High value based on Date and Coin Type. After that, we create the model based on our training set using the same function we used in the above example. We then run our test data through the model to predict the High for each entity. I then calculate the squared error for each value, which is $(predicted - actual)^2$, sum up all these squared errors and take the squared root. I judge the accuracy of my model based on this root mean squared error value (RMSE). We want to have a small rmse relative to the range of values.
+Now, we will apply the production of decision trees into a model for predicting. To accomplish this we split our data into a partition of data that we will train the model on and data we train the model on. We also remove unneccessary attributes that are not needed in our prediction of the High value based on Date and Coin Type. After that, we create the model based on our training set using the same function we used in the above example. We then run our test data through the model to predict the High for each entity. I then calculate the squared error for each value, which is $(predicted - actual)^2$, sum up all these squared errors and take the squared root. I judge the accuracy of my model based on this root mean squared error value (RMSE). We want to have a small rmse relative to the range of values.
 
 ``` {r partition}
 set.seed(123)
@@ -354,11 +358,11 @@ cbind(test_set, predictions_decision) %>%
 range(crypto_tab$High)
 ```
 
-Our model has a RMSE of 692.2562. This isnt a terrible value, but certainly isnt great. This means that on average, our prediction of high is off by 692.2562. With a range of 3.77 to 20089.00 means that this value is relatively ok, but if I was an investor in cryptocurrencies, I wouldn't want my prediction to have an error of 692, so lets see if we can get it to be smaller.
+Our model has a RMSE of 692.2562. This isnt a terrible value, but certainly isnt great. This means that on average, our prediction of high is off by 692.2562. With a range of 3.77 to 20089.00 means that this value is relatively ok, but if we were an investor in cryptocurrencies, we wouldn't want our prediction to have an error of 692, so lets see if we can get it to be smaller.
 
 Another, method for creating and determining the strength of a model is Cross Validation. In this example, we will be using 10 fold cross validation. This means that we split our data into 10 partitions, use 9 partions to train the data, and one partition to test, and we repeat this 10 times until all partions are used to test. We do this to measure the predictive performance of our model
 
-To train a fit for the model, we use the train function included in the caret package. This function first takes in a formula for prediction, which in our case is predicting High based on coin type and date. Then it takes the data we are using as a parameter along with the method used for the model, and in our case we use a  decision tree, so we set our method to be equal to "rpart". Next the train function takes in a control function. This is were the 10-fold cross validation comes it. We use the trainControl function, and give it parameters, cv and 10 for 10 fold cross validation. We also give the train function a tuneLength to try different default values for the main parameter.
+To train a fit for the model, we use the train function included in the caret package. This function first takes in a formula for prediction, which in our case is predicting High based on coin type and date. Then, it takes the data we are using as a parameter along with the method used for the model, and in our case we use a  decision tree, so we set our method to be equal to "rpart". Next the train function takes in a control function. This is were the 10-fold cross validation comes it. We use the trainControl function, and give it parameters, cv and 10 for 10 fold cross validation. We also give the train function a tuneLength to try different default values for the main parameter.
 
 
 ``` {r train, warning=FALSE}
@@ -372,7 +376,6 @@ As you can see, most of the models created in cross-validation produce RMSE lowe
 
 ## Conclusion
 Throughout this tutorial, we have gone through the entire data science pipeline exploring our cryptocurrency dataset. We found that there is a linear relationship between spread and volume (for Bitcoin), which will allow us to predict the volume of trade based on the range in trading price for the day. This tells us that depending on the volatility of the cryptocurrency market, we are able to determine the volume of trade for that day. In the future, this may be useful to predict future market positions.
-
 
 Through the use of decision trees, we explored the possibility for predicting high trading prices depending on the cryptocurrency and date. While this was somewhat successful, the correlation is highly reliant on the current news which impacts cryptocurrency stocks. Just last week, Bitcoin crossed $10,000 for the first time as a result of an upcoming "halving event". Consequently, past stock prices can not predict future prices because news events have different magnitudes of effect on stock and they happen at arbitrary dates. 
 
